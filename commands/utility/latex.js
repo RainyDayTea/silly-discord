@@ -27,11 +27,14 @@ module.exports = {
         .setName('latex')
         .setDescription('Render LaTeX code into an image')
         .addStringOption(option =>
-            option.setName('code')
+            option.setName('tex')
                 .setDescription('The LaTeX code to render')
                 .setRequired(true)),
     async execute(interaction) {
-        const tex = interaction.options.getString('code');
+        const tex = interaction.options.getString('tex');
+
+        // TODO: Clarify code and optimize
+        // TODO: Move hardcoded values to config file.
         try {
             let htmlString = katex.renderToString(tex, katexOptions);
             await interaction.deferReply({

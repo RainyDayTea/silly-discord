@@ -10,6 +10,7 @@ const path = require('path');
 const { Client, Collection, 
     Events, GatewayIntentBits } = require('discord.js');
 
+// TODO: Move hardcoded values to config file.
 const GUILD_ID = '1087532733288415343';
 const LOG_CHANNEL_ID = '1203852989614260274';
 const LOG_FORMAT = 'Message deleted from `%s` in #`%s`: %s';
@@ -96,7 +97,7 @@ client.on(Events.MessageCreate, async (msg) => {
     console.log(`Message received in '${msg.guild.name}' #${msg.channel.name} from ${msg.author.tag}: ${msg.content}`);
 });
 
-
+// TODO: Add comments to explain the code below
 client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isChatInputCommand()) return;
 
