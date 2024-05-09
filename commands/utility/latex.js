@@ -31,22 +31,22 @@ module.exports = {
                 .setDescription('The LaTeX code to render')
                 .setRequired(true)),
     async execute(interaction) {
-        const tex = interaction.options.getString('tex');
 
         // TODO: Clarify code and optimize
         // TODO: Move hardcoded values to config file.
         try {
-            let htmlString = katex.renderToString(tex, katexOptions);
             await interaction.deferReply({
                 ephemeral: false //NOTE: Set to true to hide the response
             });
+            let tex = interaction.options.getString('tex');
+            let htmlString = katex.renderToString(tex, katexOptions);
             if (browser === undefined) {
                 browser = await puppeteer.launch();
                 page = await browser.newPage();
             }
             await page.setContent(htmlTemplate.replace('PLACEHOLDER', htmlString));
             // console.log(htmlString);
-            
+
             let elem = await page.$('.katex');
             let image = await elem.screenshot({type: 'png'});
             await interaction.editReply({ 
