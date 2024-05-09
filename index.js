@@ -77,6 +77,7 @@ client.on(Events.MessageDelete, async (msg) => {
     if (msg.guild.id === GUILD_ID) {
         let logChannel = await client.channels.fetch(LOG_CHANNEL_ID);
         let msgBuffer = LOG_FORMAT.replace('%s', author).replace('%s', channel.name).replace('%s', content);
+        let msgBufferOriginal = msgBuffer;
 
         // Truncate message if it's too long
         if (msgBuffer.length > 2000) {
@@ -86,8 +87,9 @@ client.on(Events.MessageDelete, async (msg) => {
         // Catch anyways for safety
         logChannel.send(msgBuffer)
             .catch(console.error);
+        
+        console.log(msgBufferOriginal);
     }
-    console.log(`Message deleted: ${content}`);
 });
 
 client.on(Events.MessageCreate, async (msg) => { 

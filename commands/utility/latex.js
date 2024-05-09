@@ -6,7 +6,7 @@ const { SlashCommandBuilder } = require('discord.js');
 // Global options for KaTeX rendering, contains some user safeguards
 const katexOptions = {
     displayMode: true,
-    output: 'mathml',
+    output: 'html',
     maxSize: 50,
     maxExpand: 200,
     macros: {
@@ -38,14 +38,15 @@ module.exports = {
         try {
             let htmlString = katex.renderToString(tex, katexOptions);
             await interaction.deferReply({
-                ephemeral: true
+                ephemeral: false //NOTE: Set to true to hide the response
             });
             if (browser === undefined) {
                 browser = await puppeteer.launch();
                 page = await browser.newPage();
             }
             await page.setContent(htmlTemplate.replace('PLACEHOLDER', htmlString));
-            console.log(htmlString);
+            // console.log(htmlString);
+            
             let elem = await page.$('.katex');
             let image = await elem.screenshot({type: 'png'});
             await interaction.editReply({ 
