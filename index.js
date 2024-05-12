@@ -7,32 +7,36 @@ require('dotenv').config();
 
 const fs = require('fs');
 const path = require('path');
+const sqlite3 = require('sqlite3').verbose();
 const { Client, Collection, 
     Events, GatewayIntentBits } = require('discord.js');
+const config = JSON.parse(fs.readFileSync('./config.json'));
 
 // TODO: Move hardcoded values to config file.
 const GUILD_ID = '1087532733288415343';
 const LOG_CHANNEL_ID = '1203852989614260274';
-const LOG_FORMAT = 'Message deleted from `%s` in #`%s`: %s';
+var LOG_FORMAT = config.logging.format;
 
-const client = new Client({
+var client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent
     ]
 });
+var db = undefined;
+
 
 
 // ================= [[ Initialization ]] =================
 
 console.log('Starting bot...');
 
+// Load commands
 client.commands = new Collection();
-
 const foldersPath = path.join(__dirname, 'commands');
 const commandFolders = fs.readdirSync(foldersPath);
-
+//
 console.log('Loading commands...');
 for (const folder of commandFolders) {
 	const commandsPath = path.join(foldersPath, folder);
@@ -43,27 +47,34 @@ for (const folder of commandFolders) {
 		// Set a new item in the Collection with the key as the command name and the value as the exported module
 		if ('data' in command && 'execute' in command) {
 			client.commands.set(command.data.name, command);
-            console.log(`\tCommand "${command.data.name}" registered.`);
+            if ('init' in command) {
+                command.init(client);
+            }
+            console.log(`\tCommand "${command.data.name}" loaded.`);
 		} else {
 			console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
 		}
 	}
 }
 
+// Initialize/load database
+console.log('Starting database...');
+db = new sqlite3.Database(config.sqlite3.db_path);
 
+// Attempt login
 console.log('Logging in to Discord...');
+(async () => {
+    try {
+        await client.login(process.env.BOT_TOKEN);
+        console.log(`Success! Logged in as ${client.user.tag}`);
+    } catch (error) {
+        console.error('Failed to login. Error:\n' + error);
+    }
+})();
 
-// Code below should finish before the bot logs in
-setTimeout(() => {
-    client.login(process.env.BOT_TOKEN);
-}, 1000);
+
 
 // =============== [[ Event Handlers ]] ===============
-
-// .once for one-time events
-client.once(Events.ClientReady, async (readyClient) => {
-    console.log(`Success! Logged in as ${readyClient.user.tag}`);
-});
 
 client.on(Events.MessageDelete, async (msg) => {
 
@@ -92,12 +103,14 @@ client.on(Events.MessageDelete, async (msg) => {
     }
 });
 
+
 client.on(Events.MessageCreate, async (msg) => { 
     if (msg.author.bot) {
         return;
     }
     console.log(`Message received in '${msg.guild.name}' #${msg.channel.name} from ${msg.author.tag}: ${msg.content}`);
 });
+
 
 // TODO: Add comments to explain the code below
 client.on(Events.InteractionCreate, async interaction => {

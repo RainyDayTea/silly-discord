@@ -1,0 +1,22 @@
+{
+    "katexOptions": {
+        "displayMode": true,
+        "output": "html",
+        "maxSize": 50,
+        "maxExpand": 200,
+        "macros": {
+            "\\R": "\\mathbb{R}",
+            "\\N": "\\mathbb{N}",
+            "\\Z": "\\mathbb{Z}",
+            "\\Q": "\\mathbb{Q}",
+            "\\C": "\\mathbb{C}"
+        }
+    },
+    "sqlite3": {
+        "db_path": "./db.sqlite3"
+    },
+    "logging": {
+        "enabled": true,
+        "format": "Message deleted from `%s` in #`%s`: %s"
+    }
+}

@@ -1,2 +1,8 @@
+# Ignore nodejs library
 node_modules
+
+# Don't publish environment variables (dotenv)
 .env
+
+# Ignore database
+*.sqlite3

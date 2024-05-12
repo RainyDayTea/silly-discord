@@ -3,26 +3,15 @@ const katex = require('katex');
 const puppeteer = require('puppeteer');
 const { SlashCommandBuilder } = require('discord.js');
 
-// Global options for KaTeX rendering, contains some user safeguards
-const katexOptions = {
-    displayMode: true,
-    output: 'html',
-    maxSize: 50,
-    maxExpand: 200,
-    macros: {
-        // Number sets
-        "\\R": "\\mathbb{R}",
-        "\\N": "\\mathbb{N}",
-        "\\Z": "\\mathbb{Z}",
-        "\\Q": "\\mathbb{Q}",
-        "\\C": "\\mathbb{C}",
-    }
-}
-
+var katexOptions = {};
 var browser, page;
-var htmlTemplate = fs.readFileSync('./commands/utility/latex-template.html', 'utf8');
+var htmlTemplate = '';
+
+
+// ========================[[ Slash Command ]]========================
 
 module.exports = {
+
     data: new SlashCommandBuilder()
         .setName('latex')
         .setDescription('Render LaTeX code into an image')
@@ -30,20 +19,26 @@ module.exports = {
             option.setName('tex')
                 .setDescription('The LaTeX code to render')
                 .setRequired(true)),
+    
+    // Called when command is first loaded.
+    async init() {
+        katexOptions = JSON.parse(fs.readFileSync('./config.json'));
+        htmlTemplate = fs.readFileSync('./commands/utility/latex-template.html', 'utf8');
+        browser = await puppeteer.launch();
+        page = await browser.newPage();
+        console.log('Puppeteer preloaded.');
+    },
+
     async execute(interaction) {
 
-        // TODO: Clarify code and optimize
-        // TODO: Move hardcoded values to config file.
+        // FIXME: With globals, there is a risk of race conditions when setting the page content and taking a screenshot.
         try {
+            // Defer the interaction as early as possible so that the renderer can take its time
             await interaction.deferReply({
                 ephemeral: false //NOTE: Set to true to hide the response
             });
             let tex = interaction.options.getString('tex');
             let htmlString = katex.renderToString(tex, katexOptions);
-            if (browser === undefined) {
-                browser = await puppeteer.launch();
-                page = await browser.newPage();
-            }
             await page.setContent(htmlTemplate.replace('PLACEHOLDER', htmlString));
             // console.log(htmlString);
 
@@ -56,7 +51,7 @@ module.exports = {
             });
         } catch (err) {
             await interaction.editReply(`An error occurred while rendering the expression.`);
-            console.log(`Error while rendering LaTeX: ${err}`);
+            console.err(`Error while rendering LaTeX: ${err}`);
         }
     }
 };
