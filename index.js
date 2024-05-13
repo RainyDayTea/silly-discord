@@ -16,6 +16,7 @@ const config = JSON.parse(fs.readFileSync('./config.json'));
 const GUILD_ID = '1087532733288415343';
 const LOG_CHANNEL_ID = '1203852989614260274';
 var LOG_FORMAT = config.logging.format;
+var VERBOSITY = config.logging.verbosity? 0 : config.logging.verbosity;
 
 var client = new Client({
     intents: [
@@ -115,13 +116,15 @@ client.on(Events.MessageCreate, async (msg) => {
 // TODO: Add comments to explain the code below
 client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isChatInputCommand()) return;
+    if (interaction.user.bot) return;
 
 	const command = interaction.client.commands.get(interaction.commandName);
 
 	if (!command) {
-		console.error(`No command matching ${interaction.commandName} was found.`);
+		console.error(`Command '${interaction.commandName}' was attempted by user '${interaction.user.tag}', but no such command exists.`);
 		return;
 	}
+    console.log(`Command '${interaction.commandName}' was invoked by user '${interaction.user.tag}'`);
 
 	try {
 		await command.execute(interaction);

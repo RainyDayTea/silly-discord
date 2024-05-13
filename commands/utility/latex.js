@@ -1,11 +1,13 @@
 const fs = require('fs');
 const katex = require('katex');
 const puppeteer = require('puppeteer');
+const { Mutex } = require('async-mutex');
 const { SlashCommandBuilder } = require('discord.js');
 
 var katexOptions = {};
 var browser, page;
 var htmlTemplate = '';
+var pageMutex = new Mutex();
 
 
 // ========================[[ Slash Command ]]========================
@@ -39,11 +41,12 @@ module.exports = {
             });
             let tex = interaction.options.getString('tex');
             let htmlString = katex.renderToString(tex, katexOptions);
-            await page.setContent(htmlTemplate.replace('PLACEHOLDER', htmlString));
-            // console.log(htmlString);
+            let image = await pageMutex.runExclusive(async () => {
+                await page.setContent(htmlTemplate.replace('PLACEHOLDER', htmlString));
+                let elem = await page.$('.katex');
+                return await elem.screenshot({type: 'png'});
+            });
 
-            let elem = await page.$('.katex');
-            let image = await elem.screenshot({type: 'png'});
             await interaction.editReply({ 
                 files: [{
                     attachment: image
@@ -51,7 +54,7 @@ module.exports = {
             });
         } catch (err) {
             await interaction.editReply(`An error occurred while rendering the expression.`);
-            console.err(`Error while rendering LaTeX: ${err}`);
+            console.error(`Error while rendering LaTeX: ${err}`);
         }
     }
 };
