@@ -16,15 +16,16 @@ module.exports = {
 
     data: new SlashCommandBuilder()
         .setName('latex')
-        .setDescription('Render LaTeX code into an image')
+        .setDescription('Render a LaTeX expression as an image')
         .addStringOption(option =>
             option.setName('tex')
-                .setDescription('The LaTeX code to render')
+                .setDescription('The expression in math mode')
                 .setRequired(true)),
     
     // Called when command is first loaded.
     async init() {
-        katexOptions = JSON.parse(fs.readFileSync('./config.json'));
+        let config = JSON.parse(fs.readFileSync('./config.json'));
+        katexOptions = config.katexOptions;
         htmlTemplate = fs.readFileSync('./commands/utility/latex-template.html', 'utf8');
         browser = await puppeteer.launch();
         page = await browser.newPage();
@@ -32,8 +33,6 @@ module.exports = {
     },
 
     async execute(interaction) {
-
-        // FIXME: With globals, there is a risk of race conditions when setting the page content and taking a screenshot.
         try {
             // Defer the interaction as early as possible so that the renderer can take its time
             await interaction.deferReply({
