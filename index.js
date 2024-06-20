@@ -37,6 +37,7 @@ console.log('Starting bot...');
 client.commands = new Collection();
 const foldersPath = path.join(__dirname, 'commands');
 const commandFolders = fs.readdirSync(foldersPath);
+const initFunctions = [];
 //
 console.log('Loading commands...');
 for (const folder of commandFolders) {
@@ -49,7 +50,7 @@ for (const folder of commandFolders) {
 		if ('data' in command && 'execute' in command) {
 			client.commands.set(command.data.name, command);
             if ('init' in command) {
-                command.init(client);
+                initFunctions.push(command.init);
             }
             console.log(`\tCommand "${command.data.name}" loaded.`);
 		} else {
@@ -57,6 +58,12 @@ for (const folder of commandFolders) {
 		}
 	}
 }
+// Promise chain of init functions
+initFunctions.reduce((promise, func) => {
+    promise.then(() => func())
+    .catch(err => console.error(`Error encountered while initializing: ${err}`));
+}, Promise.resolve());
+
 
 // Initialize/load database
 console.log('Starting database...');
@@ -97,8 +104,12 @@ client.on(Events.MessageDelete, async (msg) => {
         }
         
         // Catch anyways for safety
-        logChannel.send(msgBuffer)
-            .catch(console.error);
+        logChannel.send({
+            "allowedMentions": {},
+            "content": msgBuffer,
+            "embeds": msg.embeds,
+            "files": msg.attachments.map(a => a.url)
+        }).catch(console.error);
         
         console.log(msgBufferOriginal);
     }
