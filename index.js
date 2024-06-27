@@ -13,10 +13,7 @@ const { Client, Collection,
 const config = JSON.parse(fs.readFileSync('./config.json'));
 
 // TODO: Move hardcoded values to config file.
-const GUILD_ID = '1087532733288415343';
-const LOG_CHANNEL_ID = '1203852989614260274';
 var LOG_FORMAT = config.logging.format;
-var VERBOSITY = config.logging.verbosity? 0 : config.logging.verbosity;
 
 var client = new Client({
     intents: [
@@ -93,8 +90,11 @@ client.on(Events.MessageDelete, async (msg) => {
     let content = msg.content;
     let channel = msg.channel;
     let author = msg.author.tag;
-    if (msg.guild.id === GUILD_ID) {
-        let logChannel = await client.channels.fetch(LOG_CHANNEL_ID);
+
+    // Check against logging configuration (from config.json)
+    if (msg.guild.id in config.logging.guilds) {
+        let logChannelId = config.logging.guilds[msg.guild.id];
+        let logChannel = await client.channels.fetch(logChannelId);
         let msgBuffer = LOG_FORMAT.replace('%s', author).replace('%s', channel.name).replace('%s', content);
         let msgBufferOriginal = msgBuffer;
 

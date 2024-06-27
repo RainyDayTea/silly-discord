@@ -17,6 +17,10 @@
     },
     "logging": {
         "enabled": true,
-        "format": "Message deleted from `%s` in #`%s`: %s"
+        "format": "Message deleted from `%s` in #`%s`: %s",
+        "guilds": {
+            "1087532733288415343": "1203852989614260274",
+            "334722532907155467": "934899563926548490"
+        }
     }
 }
