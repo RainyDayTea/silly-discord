@@ -16,5 +16,8 @@
     "katex": "^0.16.10",
     "puppeteer": "^22.8.0",
     "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.2"
   }
 }
