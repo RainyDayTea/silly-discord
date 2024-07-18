@@ -6,3 +6,6 @@ node_modules
 
 # Ignore database
 *.sqlite3
+
+# Ignore build files
+dist
