@@ -3,15 +3,19 @@
  * with Discord. Once registered, they will show
  * up on a server's context menu.
  */
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
+import fs from 'fs';
+import path from 'path';
+import assert from 'assert';
+import { REST, Routes, Client, GatewayIntentBits } from 'discord.js';
+import { Command } from '../lib/Command.js';
 
-const fs = require('node:fs');
-const path = require('node:path');
-const { REST, Routes, Client, GatewayIntentBits } = require('discord.js');
 const clientId = process.env.CLIENT_ID;
 const token = process.env.BOT_TOKEN;
-var guildId = '-1';
-var remove = false;
+assert.ok(clientId && token);
+let guildId = '-1';
+let remove = false;
 
 const HELP_MESSAGE = `Usage: npm run deploy-commands -- [--remove] --guildid <guild_id> | --all \n
 --all                : Deploy commands to all known guilds.
@@ -33,24 +37,25 @@ if (process.argv.includes('--all')) {
 if (process.argv.includes('--remove')) {
 	remove = true;
 }
+if (guildId === '-1') {
+	console.log(HELP_MESSAGE);
+	process.exit(0);
+}
 
 
 // Collect command data as JSON objects
 const commands = [];
 const foldersPath = path.resolve(__dirname, '../commands');
-const commandFolders = fs.readdirSync(foldersPath);
-
-for (const folder of commandFolders) {
-	const commandsPath = path.join(foldersPath, folder);
-	const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
-	for (const file of commandFiles) {
-		const filePath = path.join(commandsPath, file);
-		const command = require(filePath);
-		if ('data' in command && 'execute' in command) {
-			commands.push(command.data.toJSON());
-		} else {
-			console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
-		}
+const commandFiles = fs.readdirSync(foldersPath).filter(file => file.endsWith('.js'));
+for (const file of commandFiles) {
+	const filePath = path.join(foldersPath, file);
+	let command = require(filePath);
+	// Check if imported file exports a Command instance by default
+	if ('default' in command && command.default instanceof Command) {
+		command = command.default;
+		commands.push(command.data.toJSON());
+	} else {
+		console.log(`[WARNING] The command at ${filePath} does not export a Command. Skipping...`);
 	}
 }
 
@@ -77,7 +82,8 @@ const rest = new REST().setToken(token);
 					Routes.applicationGuildCommands(clientId, guild.id),
 					{ body: remove? {} : commands },
 				);
-				console.log(`Successfully reloaded ${data.length} application (/) commands for guild ${guild.id}.`);
+				assert.ok(data);
+				console.log(`Successfully reloaded ${commands.length} application (/) commands for guild ${guild.name} (${guild.id}).`);
 			}
 			process.exit(0);
 		} else {
@@ -86,11 +92,13 @@ const rest = new REST().setToken(token);
 				Routes.applicationGuildCommands(clientId, guildId),
 				{ body: remove? {} : commands },
 			);
-			console.log(`Successfully reloaded ${data.length} application (/) commands for guild ${guildId}.`);
+			assert.ok(data);
+			console.log(`Successfully reloaded ${commands.length} application (/) commands for guild ${guildId}.`);
 			process.exit(0);
 		}
 	} catch (error) {
 		// And of course, make sure you catch and log any errors!
 		console.error(error);
+		process.exit(-1);
 	}
 })();

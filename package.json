@@ -5,12 +5,14 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy-commands": "node ./src/scripts/deploy-commands.js"
+    "deploy-commands": "node ./dist/scripts/deploy-commands.js",
+    "start": "cd dist && node index.js"
   },
   "author": "RainyDayTea",
   "license": "ISC",
   "dependencies": {
     "async-mutex": "^0.5.0",
+    "axios": "^1.7.2",
     "discord.js": "^14.14.1",
     "dotenv": "^16.4.5",
     "katex": "^0.16.10",

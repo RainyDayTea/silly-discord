@@ -1,4 +1,4 @@
-import { Command } from "../../lib/Command.js";
+import { Command } from "../lib/Command.js";
 import fs from "fs";
 import katex from "katex";
 import { Mutex } from "async-mutex";
@@ -20,14 +20,17 @@ let page: Puppeteer.Page | null = null;
 let template: string | null = null;
 let katexOptions: Object | null = null;
 
-module.exports = new Command("latex", data,
+export default new Command("latex", data,
 
     async (client) => {
         browser = await Puppeteer.launch();
         page = await browser.newPage();
-        let config = JSON.parse(fs.readFileSync("./config.json", "utf-8"));
+        console.log("Puppeteer preloaded.");
+        // TODO: Change path to a more flexible configuration system
+        let config = JSON.parse(fs.readFileSync("../config.json", "utf-8"));
         katexOptions = config.katexOptions;
-        template = fs.readFileSync("./templates/latex.html", "utf-8");
+        // TODO: Change this to a more flexible template system
+        template = fs.readFileSync("../src/templates/latex-template.html", "utf-8");
     },
     
     async (client, interaction) => {
@@ -51,13 +54,13 @@ module.exports = new Command("latex", data,
                 });
                 return;
             }
-            const html = template!.replace("{{tex}}", katex.renderToString(tex));
+            const html = template!.replace("PLACEHOLDER", katex.renderToString(tex, katexOptions!));
             const buffer = await pageMutex.runExclusive(async () => {
                 await page!.setContent(html);
-                const element = await page!.waitForSelector("img");
-                return await element!.screenshot();
+                const element = await page!.$(".katex");
+                return await element!.screenshot({type: "png"});
             });
-            await interaction.reply({ files: [ { attachment: buffer, name: "latex.png" } ] });
+            await interaction.followUp({ files: [ { attachment: buffer, name: "latex.png" } ] });
         } catch (err) {
             await interaction.editReply(`An error occurred while rendering the expression.`);
             console.error(`Error while rendering LaTeX: ${err}`);

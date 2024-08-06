@@ -4,8 +4,9 @@ require('dotenv').config({
 
 import { ChannelType, Client, Collection, Events, GatewayIntentBits, TextChannel} from 'discord.js';
 import { Command } from './lib/Command';
-import * as fs from 'fs';
-import * as path from 'path';
+import fs from 'fs';
+import path from 'path';
+import CommandLoader from './lib/CommandLoader';
 // import * as sql from 'sqlite3';
 
 type Bot = {
@@ -44,42 +45,15 @@ const bot: Bot = {
 console.log('Starting bot...');
 
 // Load commands
-const foldersPath = path.join(__dirname, 'commands');
-const commandFolders = fs.readdirSync(foldersPath);
-const initFunctions: Array<Function> = [];
-//
-console.log('Loading commands...');
-for (const folder of commandFolders) {
-	const commandsPath = path.join(foldersPath, folder);
-	const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
-	for (const file of commandFiles) {
-		const filePath = path.join(commandsPath, file);
-		const command = require(filePath);
-		// Set a new item in the Collection with the key as the command name and the value as the exported module
-		if ('data' in command && 'execute' in command) {
-			bot.commands.set(command.data.name, command);
-            if ('init' in command) {
-                initFunctions.push(command.init);
-            }
-            console.log(`\tCommand "${command.data.name}" loaded.`);
-		} else {
-			console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
-		}
-	}
-}
-// Promise chain of init functions
-console.log('Initializing commands...');
+const commandLoader = new CommandLoader(bot.client, path.join(__dirname, 'commands'));
 (async () => {
-    for (const init of initFunctions) {
-        await init(bot.client);
+    let commands = await commandLoader.initCommands();
+    for (let command of commands) {
+        bot.commands.set(command.data.name, command);
     }
-    console.log('Commands initialized.');
-})();
-
-// Attempt login
-console.log('Logging in to Discord...');
-(async () => {
+    console.log(`Loaded ${bot.commands.size} commands.`);
     try {
+        console.log('Logging in to Discord...');
         await bot.client.login(process.env.BOT_TOKEN);
         console.log(`Success! Logged in as ${bot.client.user?.tag}`);
     } catch (error) {
@@ -146,16 +120,11 @@ bot.client.on(Events.InteractionCreate, async interaction => {
 		console.error(`Command '${interaction.commandName}' was attempted by user '${interaction.user.tag}', but no such command exists.`);
 		return;
 	}
-    console.log(`Command '${interaction.commandName}' was invoked by user '${interaction.user.tag}'`);
+    console.log(`Command '${interaction.commandName}' was invoked by user '${interaction.user.tag}'.`);
 
 	try {
 		await command.exec(bot.client, interaction);
 	} catch (error) {
 		console.error(error);
-		if (interaction.replied || interaction.deferred) {
-			await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
-		} else {
-			await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-		}
 	}
 });
