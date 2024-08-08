@@ -11,9 +11,10 @@ import assert from 'assert';
 import { REST, Routes, Client, GatewayIntentBits } from 'discord.js';
 import { Command } from '../lib/Command.js';
 
-const clientId = process.env.CLIENT_ID;
+const clientId = process.env.NODE_ENV === 'development' ? process.env.CLIENT_ID_DEV : process.env.CLIENT_ID;
 const token = process.env.NODE_ENV === 'development' ? process.env.BOT_TOKEN_DEV : process.env.BOT_TOKEN;
 assert.ok(clientId && token);
+assert.ok(clientId);
 let guildId = '-1';
 let remove = false;
 
