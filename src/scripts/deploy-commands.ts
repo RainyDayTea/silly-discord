@@ -12,7 +12,7 @@ import { REST, Routes, Client, GatewayIntentBits } from 'discord.js';
 import { Command } from '../lib/Command.js';
 
 const clientId = process.env.CLIENT_ID;
-const token = process.env.BOT_TOKEN;
+const token = process.env.NODE_ENV === 'development' ? process.env.BOT_TOKEN_DEV : process.env.BOT_TOKEN;
 assert.ok(clientId && token);
 let guildId = '-1';
 let remove = false;

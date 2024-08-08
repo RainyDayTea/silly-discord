@@ -48,6 +48,11 @@ console.log('Starting bot...');
 const commandLoader = new CommandLoader(bot.client, path.join(__dirname, 'commands'));
 (async () => {
     let commands = await commandLoader.initCommands();
+    let token: string;
+    if (process.env.NODE_ENV === 'development' && process.env.BOT_TOKEN_DEV) token = process.env.BOT_TOKEN_DEV;
+    else if (process.env.NODE_ENV === 'production' && process.env.BOT_TOKEN) token = process.env.BOT_TOKEN;
+    else if (process.env.BOT_TOKEN) token = process.env.BOT_TOKEN;
+    else throw new Error('No token provided in environment variables.');
     for (let command of commands) {
         bot.commands.set(command.data.name, command);
     }
