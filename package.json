@@ -20,7 +20,13 @@
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.3",
+    "@jest/globals": "^29.7.0",
     "@types/katex": "^0.16.7",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.4",
     "typescript": "^5.5.2"
   }
 }

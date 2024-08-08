@@ -1,6 +1,7 @@
 import { Command } from "../lib/Command.js";
 import { APIEmbed, APIEmbedField, ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import { CourseRequester, Course, CourseSection } from "../lib/Course.js";
+import { CourseRequester } from "../lib/CourseRequester.js";
+import { Course, CourseSection } from "../lib/Course.js";
 import PageableInteraction from "../lib/PageableInteraction.js";
 
 const ERR_COLOR = 0xff0000;

@@ -43,6 +43,7 @@ const bot: Bot = {
 // ================= [[ Initialization ]] =================
 
 console.log('Starting bot...');
+if (process.env.NODE_ENV === 'development') console.log('Running in development mode.');
 
 // Load commands
 const commandLoader = new CommandLoader(bot.client, path.join(__dirname, 'commands'));
@@ -59,7 +60,7 @@ const commandLoader = new CommandLoader(bot.client, path.join(__dirname, 'comman
     console.log(`Loaded ${bot.commands.size} commands.`);
     try {
         console.log('Logging in to Discord...');
-        await bot.client.login(process.env.BOT_TOKEN);
+        await bot.client.login(token);
         console.log(`Success! Logged in as ${bot.client.user?.tag}`);
     } catch (error) {
         console.error('Failed to login. Error:\n' + error);
