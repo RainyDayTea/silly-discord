@@ -1,9 +1,16 @@
 import { Collection } from "discord.js";
 
+/**
+ * Represents a single section of a particular course listing.
+ */
 export type CourseSection = {
+    /** The instructor's full name, or "TBD" if not yet known. */
     instructor: string,
+    /** The maximum enrollment capacity. */
     max: number,
+    /** The current enrollment count. */
     curr: number,
+    /** The size of the waitlist queue. Can be 0 if nobody is in the waitlist. */
     waitlist: number
 };
 
