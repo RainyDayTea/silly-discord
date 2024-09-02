@@ -1,18 +1,20 @@
-require('dotenv').config({
-    path: '../.env'
-});
-
 import { ChannelType, Client, Collection, Events, GatewayIntentBits, TextChannel} from 'discord.js';
 import { Command } from './lib/Command';
 import fs from 'fs';
 import path from 'path';
 import CommandLoader from './lib/CommandLoader';
+import dotenv from 'dotenv';
+import { Database } from 'sqlite3';
+import { CourseRequester, CourseRequestBody } from './lib/CourseRequester';
+dotenv.config({
+    path: '../.env'
+});
 // import * as sql from 'sqlite3';
 
 type Bot = {
     client: Client,
     commands: Collection<string, Command>,
-    db: any
+    db: Database
 };
 
 type Config = {
@@ -36,7 +38,7 @@ const bot: Bot = {
         ]
     }), 
     commands: new Collection(), 
-    db: null
+    db: new Database('./db.sqlite3')
 };
 
 
@@ -104,14 +106,6 @@ bot.client.on(Events.MessageDelete, async (msg) => {
     }).catch(console.error);
     
     console.log(msgBufferOriginal);
-});
-
-
-bot.client.on(Events.MessageCreate, async (msg) => { 
-    if (msg.author.bot) return;
-    if (msg.channel.type !== ChannelType.GuildText) return;
-    if (!msg.guild) return;
-    console.log(`Message received in '${msg.guild.name}' #${msg.channel.name} from ${msg.author.tag}: ${msg.content}`);
 });
 
 

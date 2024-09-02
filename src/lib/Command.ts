@@ -4,8 +4,8 @@ class Command {
     
     public name: string;
     public data: SlashCommandBuilder;
-    public init: (client: Client) => Promise<void>;
-    public exec: (client: Client, interaction: ChatInputCommandInteraction) => Promise<void>;
+    public init: (client: Client, args?: any) => Promise<void>;
+    public exec: (client: Client, interaction: ChatInputCommandInteraction, args?: any) => Promise<void>;
     
 
     constructor(
@@ -22,4 +22,11 @@ class Command {
 
 }
 
-export { Command };
+class CommandError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'CommandError';
+    }
+}
+
+export { Command, CommandError };

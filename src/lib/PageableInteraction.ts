@@ -6,6 +6,7 @@ import {
     ChatInputCommandInteraction, 
     Component, 
     ComponentType, 
+    InteractionReplyOptions, 
     MessagePayload 
 } from 'discord.js';
 
@@ -90,5 +91,19 @@ export default class PageableInteraction {
             this.row.setComponents([ended]);
             await response.edit({ components: [this.row] });
         });
+    }
+
+    public async detach(interaction: ChatInputCommandInteraction) {
+        let payload: InteractionReplyOptions = {
+            components: [this.row],
+            embeds: [this.embeds[this.currentPage - 1]]
+        };
+        if (interaction.deferred) {
+            await interaction.followUp(payload);
+        } else if (interaction.replied) {
+            await interaction.editReply(payload);
+        } else {
+            await interaction.reply(payload);
+        }
     }
 }
